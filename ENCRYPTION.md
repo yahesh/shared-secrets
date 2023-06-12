@@ -6,7 +6,7 @@ The encryption schemes are named after their version field (which is the first b
 
 ## Encryption Scheme v00
 
-Encryption scheme v00 is a password-based Encrypt-then-MAC (EtM) scheme which uses AES-256-CTR as the encryption algorithm and HMAC-SHA-256 as the MAC algorithm. The key to derive the encryption key and the message authentication key is derived via a 10.000 rounds PBKDF2-SHA-256 on the password and a 256 bits long random salt.
+Encryption scheme v00 is a password-based Encrypt-then-MAC (EtM) scheme which uses AES-256-CTR as the encryption algorithm and HMAC-SHA-256 as the MAC algorithm. The key to derive the encryption key and the message authentication key is derived via a 512.000 rounds PBKDF2-SHA-256 on the password and a 256 bits long random salt.
 
 ### Message Format
 
@@ -31,7 +31,7 @@ Messages in the v00 format have the following fields:
 Messages in the v00 format use the following keys:
 
 * **salt** is a cryptographically strong random number
-* **key** is derived from the given password and **salt** using a 10.000 rounds PBKDF2-SHA-256
+* **key** is derived from the given password and **salt** using a 512.000 rounds PBKDF2-SHA-256
 * **enckey** is derived from **key** as the key and the string `enc` as the message using HMAC-SHA-256
 * **mackey** is derived from **key** as the key and the string `mac` as the message using HMAC-SHA-256
 
