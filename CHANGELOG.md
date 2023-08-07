@@ -1,3 +1,7 @@
+# 0.??b0 (2023-08-07)
+
+* replace unnecessary `hex2bin()` calls
+
 # 0.30b2 (2022-07-20)
 
 * prevent deprecation notice in PHP 8.0 and above

@@ -109,7 +109,7 @@
           $data[OPENSSL_NONCE]      = substr($data[OPENSSL_MACMESSAGE], 33, 16);
           $data[OPENSSL_ENCMESSAGE] = substr($data[OPENSSL_MACMESSAGE], 49);
 
-          if (hex2bin("00") === $data[OPENSSL_VERSION]) {
+          if ("\x00" === $data[OPENSSL_VERSION]) {
             # derive secure key from password and salt
             $data[OPENSSL_KEY] = hash_pbkdf2("sha256", $password, $data[OPENSSL_SALT], 10000, 0, true);
 
@@ -203,7 +203,7 @@
           $data[OPENSSL_NONCE]      = substr($data[OPENSSL_MACMESSAGE], $position,    16);
           $data[OPENSSL_ENCMESSAGE] = substr($data[OPENSSL_MACMESSAGE], $position+16);
 
-          if (hex2bin("01") === $data[OPENSSL_VERSION]) {
+          if ("\x01" === $data[OPENSSL_VERSION]) {
             # for shared-secrets we only support encryption with one key
             if (1 === $data[OPENSSL_RSAKEYCOUNT]) {
               # set default key value
@@ -297,7 +297,7 @@
       $data = [];
       try {
         # set and generate values
-        $data[OPENSSL_VERSION] = hex2bin("00");
+        $data[OPENSSL_VERSION] = "\x00";
         $data[OPENSSL_SALT]    = openssl_random_pseudo_bytes(32, $strong_crypto); // generate random salt
         $data[OPENSSL_MESSAGE] = $message;
 
@@ -372,7 +372,7 @@
       $data = [];
       try {
         # set and generate values
-        $data[OPENSSL_VERSION] = hex2bin("01");
+        $data[OPENSSL_VERSION] = "\x01";
         $data[OPENSSL_KEY]     = openssl_random_pseudo_bytes(32, $strong_crypto); // generate random key
         $data[OPENSSL_MESSAGE] = $message;
 
