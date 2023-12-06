@@ -24,17 +24,20 @@
   </div>
 
   <form role="form" action="/<?= html(SECRET_URI) ?><?= (PLAIN_PARAM) ? "?plain" : "" ?>" method="post">
-    <h1>Share a Secret:</h1>
+    <h3>Share a Secret:</h3>
     <div id="secret-div">
       <textarea autocomplete="off" class="form-control" id="secret" name="secret" rows="5" required="required"></textarea>
       <div id="counter"><?= MAX_PARAM_SIZE ?></div>
     </div>
-    <button type="submit" class="btn btn-default pull-right" id="share-secret-btn" name="share-secret-btn">Share the Secret!</button>
+    <button type="submit" class="btn btn-primary float-end" id="share-secret-btn" name="share-secret-btn">Share the Secret!</button>
   </form>
 
-  <label class="checkbox-inline" for="encrypt-locally"><input type="checkbox" autocomplete="off" id="encrypt-locally" value="" />Password-protected: </label>
+  <div class="form-check-inline">
+    <input class="form-check-input" type="checkbox" autocomplete="off" id="encrypt-locally" value="" />
+    <label class="form-check-label" for="encrypt-locally">Password-protected:</label>
+  </div>
   <input type="password" autocomplete="off" class="form-control" id="password" maxlength="64" size="32" />
-  <input type="button" class="btn btn-default" id="encrypt" value="Protect!" />
+  <input type="button" class="btn btn-primary" id="encrypt" value="Protect!" />
 
   <link href="/resources/css/share.css?<?= $cache_value ?>" integrity="sha256-EYu1Dc10IDi0yUOyV55YWmCKWfVlBj1rTMk/AsbViKE=" rel="stylesheet" type="text/css" />
 

@@ -35,7 +35,7 @@
 
 ?>
 
-  <h1>Download the Public Key:</h1>
+  <h3>Download the Public Key:</h3>
   <p><pre id="pubkey"><?= $pubkey ?></pre></p>
 
   <link href="/resources/css/pub.css?<?= $cache_value ?>" integrity="sha256-wPffseYftFWOZpxIAfjpeKOz9Cac5cSXZGlXKaUc7bA=" rel="stylesheet" type="text/css" />

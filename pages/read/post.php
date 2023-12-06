@@ -44,12 +44,15 @@
     <strong>Error!</strong> Local decryption failed.
   </div>
 
-  <h1>Read a Secret:</h1>
+  <h3>Read a Secret:</h3>
   <p><pre id="secret"><?= $secret ?></pre></p>
 
-  <label class="checkbox-inline" for="decrypt-locally"><input type="checkbox" autocomplete="off" id="decrypt-locally" value="" />Password-protected: </label>
+  <div class="form-check-inline">
+    <input class="form-check-input" type="checkbox" autocomplete="off" id="decrypt-locally" value="" />
+    <label class="form-check-label" for="encrypt-locally">Password-protected:</label>
+  </div>
   <input type="password" autocomplete="off" class="form-control" id="password" maxlength="64" size="32" />
-  <input type="button" class="btn btn-default" id="decrypt" value="Unprotect!" />
+  <input type="button" class="btn btn-primary" id="decrypt" value="Unprotect!" />
 
   <link href="/resources/css/read.css?<?= $cache_value ?>" integrity="sha256-wgpxEGDMqG2EJxicZqc40OJMPwN8rBAZTYLdGyagQGw=" rel="stylesheet" type="text/css" />
 

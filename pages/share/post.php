@@ -41,7 +41,7 @@
     </div>
   </noscript>
 
-  <h1>Share a Secret:</h1>
+  <h3>Share a Secret:</h3>
   <p><pre id="secret"><?= $secret ?></pre></p>
 
   <link href="/resources/css/share.css?<?= $cache_value ?>" integrity="sha256-EYu1Dc10IDi0yUOyV55YWmCKWfVlBj1rTMk/AsbViKE=" rel="stylesheet" type="text/css" />

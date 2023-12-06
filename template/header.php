@@ -16,38 +16,34 @@
 
     <title><?php print(htmlentities(SERVICE_TITLE)); ?></title>
 
-    <link href="/vendors/bootstrap/css/bootstrap.min.css?<?php print($cache_value); ?>" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" rel="stylesheet" type="text/css" />
+    <link href="/vendors/bootstrap/css/bootstrap.min.css?<?php print($cache_value); ?>" rel="stylesheet" type="text/css" />
   </head>
 
-  <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/"><?php print(htmlentities(SERVICE_TITLE)); ?></a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li<?php if (empty(SECRET_URI)) { ?> class="active"<?php } ?>><a href="/">Share a secret.</a></li>
-            <li<?php if (0 === strcmp(SECRET_URI, HOW_PAGE_NAME)) { ?> class="active"<?php } ?>><a href="/how">How does this service work?</a></li>
-            <li<?php if (0 === strcmp(SECRET_URI, PUB_PAGE_NAME)) { ?> class="active"<?php } ?>><a href="/pub">Download the public key.</a></li>
-            <li<?php if (0 === strcmp(SECRET_URI, IMPRINT_PAGE_NAME)) { ?> class="active"<?php } ?>><a href="/imprint"><?= (defined("IMPRINT_TEXT") && (null !== IMPRINT_TEXT)) ? html(IMPRINT_TEXT) : "Who provides this service?" ?></a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+<body>
 
-    <div class="jumbotron text-center">
-      <h1><?php print(htmlentities(PAGE_TITLE)); ?></h1>
-      <p>This page allows you to share a secret through a secret sharing link.<br />
-         The secret is stored in the secret sharing link and not on the server.<br />
-         A secret sharing link can only be used once.</p>
-    </div>
-
+  <header class="p-3 text-bg-dark">
     <div class="container">
-      <!-- header -->
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none fs-4 me-2">
+          <?php print(htmlentities(SERVICE_TITLE)); ?>
+        </a>
+
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+        <li><a class="nav-link px-2 <?php if (empty(SECRET_URI)) { ?> text-white <?php } else { ?> text-secondary <?php } ?>" href="/">Share a secret.</a></li>
+          <li><a class="nav-link px-2 <?php if (0 === strcmp(SECRET_URI, HOW_PAGE_NAME)) { ?> text-white <?php } else { ?> text-secondary <?php } ?>" href="/how">How does this service work?</a></li>
+          <li><a class="nav-link px-2 <?php if (0 === strcmp(SECRET_URI, PUB_PAGE_NAME)) { ?> text-white <?php } else { ?> text-secondary <?php } ?>" href="/pub">Download the public key.</a></li>
+          <li><a class="nav-link px-2 <?php if (0 === strcmp(SECRET_URI, IMPRINT_PAGE_NAME)) { ?> text-white <?php } else { ?> text-secondary <?php } ?>" href="/imprint"><?= (defined("IMPRINT_TEXT") && (null !== IMPRINT_TEXT)) ? html(IMPRINT_TEXT) : "Who provides this service?" ?></a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <div class="jumbotron text-center mt-3">
+    <h1><?php print(htmlentities(PAGE_TITLE)); ?></h1>
+    <p>This page allows you to share a secret through a secret sharing link.<br />
+       The secret is stored in the secret sharing link and not on the server.<br />
+       A secret sharing link can only be used once.</p>
+  </div>
+
+  <div class="container">
+    <!-- header -->
