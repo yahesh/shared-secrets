@@ -23,7 +23,9 @@
         try {
           $result = get_keypem($pubkey);
         } finally {
-          openssl_pkey_free($pubkey);
+          if (0 > version_compare(PHP_VERSION, "8.0.0")) {
+            openssl_pkey_free($pubkey);
+          }
         }
       } else {
         if (DEBUG_MODE) {
