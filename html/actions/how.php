@@ -1,7 +1,5 @@
 <?php
+# prevent direct access
+if (!defined("SHARED_SECRETS")) { die(""); }
 
-  # prevent direct access
-  if (!defined("SYS11_SECRETS")) { die(""); }
-
-  # dummy script without any content
-
+# dummy script without any content

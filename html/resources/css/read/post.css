@@ -1,0 +1,39 @@
+/* interface definitions */
+
+#checkbox-div {
+  display:    block;
+  margin-top: -0.5em;
+}
+
+#copy-to-clipboard {
+  margin-top: -0.5em;
+}
+
+#decrypt {
+  margin-top: 0.5em;
+  visibility: hidden;
+}
+
+#decrypt-error {
+  display: none;
+}
+
+#password {
+  margin-top: 0.5em;
+  visibility: hidden;
+  width:      100%;
+}
+
+#password-div {
+  width: 25%;
+}
+
+#secret {
+  padding:     1.0em;
+  white-space: pre-wrap;
+  word-break:  break-all;
+}
+
+#spacer {
+  margin-bottom: 5.0em;
+}

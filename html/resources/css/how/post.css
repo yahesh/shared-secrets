@@ -1,0 +1,23 @@
+/* interface definitions */
+
+#asymmetric {
+  margin-bottom: 1.0em;
+  padding:       1.0em;
+}
+
+#copy-to-clipboard-asymmetric {
+  margin-top: -0.5em;
+}
+
+#copy-to-clipboard-symmetric {
+  margin-top: -0.5em;
+}
+
+#spacer {
+  margin-bottom: 5.0em;
+}
+
+#symmetric {
+  margin-bottom: 1.0em;
+  padding:       1.0em;
+}

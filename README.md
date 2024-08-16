@@ -50,110 +50,81 @@ curl -X GET https://example.com/pub?plain
 
 ## Installation
 
-### Requirements
+### Important!
 
-Shared-Secrets is based on MariaDB 10.0, Nginx 1.10 and PHP 7.0, but should also work with MySQL and Apache. Encryption is done via the OpenSSL integration of PHP.
+You **should not** publish the application to the internet without TLS enabled. Depending on your setup you either want to configure the NGINX host in `./defaults/nginx/sites/default.conf` to enable TLS or you want to put a reverse proxy in front of the application which handles TLS termination. An example configuration for an NGINX reverse proxy is provided in `./defaults/nginx/sites/default-tls.conf`.
 
-### Nginx Setup
+### Encryption
 
-Shared-Secrets is designed to yield an A+ rating at the [Mozilla Observatory](https://observatory.mozilla.org) website check. Releases are checked against the Mozilla Observatory to make sure that a good rating can be achieved.
-
-To achieve an A+ rating with your instance, you have to implement TLS and non-TLS calls have to be redirected to the TLS-protected website. You also have to set some security headers. Furthermore, Shared-Secrets uses a single entry point to control the dataflow. See this NGINX configuration as an example:
+You should generate a fresh RSA key pair with a minimum key size of 2048 bits:
 
 ```
-server {
-  listen      80 default_server;
-  listen [::]:80 default_server;
-
-  # has to be changed to your domain
-  server_name example.com;
-
-  return 301 https://$host$request_uri;
-}
-
-server {
-  listen      443 ssl http2 default_server;
-  listen [::]:443 ssl http2 default_server;
-
-  # has to be changed to your domain
-  server_name example.com;
-
-  # do not write logs
-  access_log off;
-  error_log  /dev/null emerg;
-
-  # has to be changed to your certificate files
-  ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-  
-  # generate your own dhparam to protect against WeakDH attack:
-  # > openssl dhparam -out dhparam.pem 2048
-  ssl_dhparam /etc/ssl/certs/dhparam.pem;
-
-  # default locations
-  root  /var/www/html;
-  index index.html index.htm index.php;
-
-  ssl_ciphers               "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:AES128-SHA";
-  ssl_ecdh_curve            secp384r1;
-  ssl_prefer_server_ciphers on;
-  ssl_protocols             TLSv1.2;
-  ssl_session_cache         shared:SSL:10m;
-  ssl_session_tickets       off;
-  ssl_stapling              on;
-  ssl_stapling_verify       on;
-
-  resolver         8.8.8.8 8.8.4.4 valid=300s;
-  resolver_timeout 5s;
-
-  # set security headers
-  add_header Content-Security-Policy   "base-uri 'self'; default-src 'self'; form-action 'self'; frame-ancestors 'self'; require-sri-for script style";
-  add_header Permissions-Policy        "interest-cohort=()";
-  add_header Referrer-Policy           "same-origin";
-  add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload";
-  add_header X-Content-Security-Policy "base-uri 'self'; default-src 'self'; form-action 'self'; frame-ancestors 'self'; require-sri-for script style";
-  add_header X-Content-Type-Options    "nosniff";
-  add_header X-Frame-Options           "SAMEORIGIN";
-  add_header X-Webkit-CSP              "base-uri 'self'; default-src 'self'; form-action 'self'; frame-ancestors 'self'; require-sri-for script style";
-  add_header X-XSS-Protection          "1; mode=block";
-
-  # prevent access to certain locations
-  location ~ ^\/\.env$           { return 404; }
-  location ~ ^\/\.env\.default$  { return 404; }
-  location ~ ^\/\.git(\/.*)?$    { return 404; }
-  location ~ ^\/\.gitattributes$ { return 404; }
-  location ~ ^\/\.gitignore$     { return 404; }
-  location ~ ^\/\.htaccess$      { return 404; }
-  location ~ ^\/actions(\/.*)?$  { return 404; }
-  location ~ ^\/CHANGELOG\.md$   { return 404; }
-  location ~ ^\/config(\/.*)?$   { return 404; }
-  location ~ ^\/ENCRYPTION\.md$  { return 404; }
-  location ~ ^\/lib(\/.*)?$      { return 404; }
-  location ~ ^\/LICENSE$         { return 404; }
-  location ~ ^\/pages(\/.*)?$    { return 404; }
-  location ~ ^\/README\.md$      { return 404; }
-  location ~ ^\/router\.php$     { return 404; }
-  location ~ ^\/template(\/.*)?$ { return 404; }
-
-  # Your configuration comes here:
-  # ...
-
-  # single entrypoint
-  location / {
-    try_files $uri $uri/ /index.php?$query_string;
-  }
-
-  # example PHP-FPM usage
-  location ~ \.php$ {
-    include      snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php7.0-fpm.sock;
-  }
-}
+openssl genrsa 2048
 ```
 
-### MariaDB Setup
+**Beware:** You should place the RSA private key in a location so that it is not accessible through the webserver. The recommended protection is to directly insert it as a strings into the `RSA_PRIVATE_KEYS` array within the configuration file.
 
-Shared-Secrets uses a single-table database to store which secret has been retrieved at what point in time. No actual secret content is stored:
+### Recommended Setup
+
+Shared-Secrets comes with its own NGINX+PHP-FPM container based on the `alpine:latest` image. By default Shared-Secrets uses an SQLite database which is sufficient for setups [with low traffic volume](https://www.sqlite.org/whentouse.html#website).
+
+#### Container Build
+
+You can build the container locally:
+
+```
+podman build \
+  --no-cache \
+  --tag "shared-secrets" \
+  .
+```
+
+#### Container Run
+
+When starting the container you can configure the application through environment variables. For persistent setups you want to mount folders to `/config` and `/db` so that the contained files do not get lost during a container update:
+
+```
+podman run \
+  --detach \
+  --env DEBUG_MODE="false" \
+  --env DEFAULT_TIMEZONE="Europe/Berlin" \
+  --env IMPRINT_TEXT="Who provides this service?" \
+  --env IMPRINT_URL="http://127.0.0.1/" \
+  --env JUMBO_SECRETS="false" \
+  --env READ_ONLY="false" \
+  --env RSA_PRIVATE_KEYS="$(openssl genrsa 4096)" \
+  --env SHARE_ONLY="false" \
+  --env SERVICE_TITLE="Shared-Secrets" \
+  --env SERVICE_URL="http://127.0.0.1/" \
+  --env SQLITE_PATH=/www/htdocs/db/db.sqlite \
+  --init \
+  --name shared-secrets \
+  --network "slirp4netns:allow_host_loopback=true,cidr=10.0.2.0/24" \
+  --publish "127.0.0.1:80:80" \
+  --volume /path/to/your/config:/config \
+  --volume /path/to/your/db:/db \
+  "localhost/shared-secrets:latest"
+```
+
+### Manual Setup
+
+Shared-Secrets is based on MariaDB/MySQL or SQLite, Nginx and PHP.
+
+#### Files
+
+You only have to deploy the files located in `./html/`.
+
+#### NGINX
+
+An example configuration for NGINX is provided in `./defaults/nginx/`.
+
+#### PHP-FPM
+
+An example configuration for PHP-FPM is provided in `./defaults/php-fpm/`.
+
+#### Database
+
+Shared-Secrets uses a single-table database to store which secret has been retrieved at what point in time. No actual secret content is stored in the database. SQLite will be used if you do not provide any MariaDB/MySQL credentials. You have to manually create the database if you want to use MariaDB/MySQL instead:
 
 ```
 CREATE DATABASE secrets CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -177,46 +148,42 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-### Encryption Setup
+## Configuration
 
-You should generate a fresh RSA key pair with a minimum key size of 2048 bits:
+There are several ways to configure the application with configuration sources on the top take precendence over sources on the bottom of the list:
 
-```
-openssl genrsa -out ./rsa.key 2048
-```
-
-**Beware:** You should place this file in a location so that it is not accessible through the webserver. The recommended protection is to directly insert the RSA private keys as strings into the `RSA_PRIVATE_KEYS` array within the configuration file.
-
-### Service Setup
-
-#### Configuration via config.php
-
-Copy the `config/config.php.default` file to `config/config.php` and set the necessary configuration values. When a `config/config.php` file exists then it is used as the **only** configuration source for the entire Shared-Secrets instance.
-
-#### Configuration via .env
-
-Copy the `.env.default` file to `.env` and set the necessary configuration values. When a `config/config.php` file exists then the configuration values in the `.env` file will **not** be used. Configuration values in the `.env` file can be overwritten by setting environment variables.
+1. environment variables
+2. `./config/.env`
+3. `./.env`
+4. `/.env`
+5. `./config/config.php`
 
 #### Configuration via environment variables
 
-Configuration values can also be set by defining corresponding environment variables. When a `config/config.php` file exists then the configuration values set via environment variables will **not** be used. Configuration values in the `.env` file can be overwritten by setting environment variables.
+Configuration values can be set by defining corresponding environment variables. Have a look at `./.env.default` for a list of valid environment variables.
+
+#### Configuration via `.env` file
+
+Copy the `./.env.default` file to one of the aforementioned locations for the `.env` file and set the necessary configuration values.
+
+#### Configuration via `config.php` file
+
+Copy the `./config/config.php.default` file to `./config/config.php` and set the necessary configuration values.
 
 ### Read-Only and Share-Only Instances
 
 The configuration allows you to set your instances into read-only and/or share-only mode. This can be useful if you want to use a private **share-only** instance or custom software to create secret sharing sharing links but provide a public **read-only** instance to retrieve the generated secret sharing links. There are two more things to consider:
 
 * A **share-only** instance does not need access to the RSA private key as it will not decrypt secret sharing links. Therefore, it is possible to configure the RSA public key of the corresponding **read-only** instance into the `RSA_PRIVATE_KEYS` array of a **share-only** instance.
-* The basis for the creation of secret sharing link is the `SECRET_SHARING_URL` configuration value. In order for a **share-only** instance to generate correct secret sharing links you have to set the URL of the corresponding **read-only** instance as the `SECRET_SHARING_URL` configuration value of the **share-only** instance.
-
-### TLS Recommendation
-
-It is strongly recommended to use TLS to protect the connection between the server and the clients.
+* The basis for the creation of secret sharing link is the `SERVICE_URL` configuration value. In order for a **share-only** instance to generate correct secret sharing links you have to set the URL of the corresponding **read-only** instance as the `SERVICE_URL` configuration value of the **share-only** instance.
 
 ## Maintenance
 
 ### Database Backup
 
-It is essential for Shared-Secrets to know which secrets have already been retrieved in order to implement the read-once functionality. Therefore, you should regularly backup your database to prevent messages from being read more than once. A command to create a backup of all databases may look like this:
+It is essential for Shared-Secrets to know which secrets have already been retrieved in order to implement the read-once functionality. Therefore, you should regularly backup your database to prevent messages from being read more than once.
+
+A command to create a backup of all databases of MariaDB/MySQL may look like this:
 
 ```
 sudo mysqldump --all-databases --result-file="./backup_$(date +'%Y%m%d').sql"
@@ -313,15 +280,6 @@ An active man-in-the-middle attacker could change the transmitted secret sharing
 ## Attributions
 
 * [Bootstrap](https://getbootstrap.com): for providing an easy-to-use framework to build nice-looking applications
-* [html5shiv](https://github.com/aFarkas/html5shiv): for handling Internet Explorer compatibility stuff
-* [jQuery](https://jquery.com): for just existing
-* [Katharina Franz](https://www.katharinafranz.com): for suggesting Bootstrap as an easy-to-use framework to build nice-looking applications
-* [Respond.js](https://github.com/scottjehl/Respond): for handling even more Internet Explorer compatibility stuff
-
-## ToDo
-
-* switch to a more personalized design (current design is taken from [here](https://github.com/twbs/bootstrap/tree/master/docs/examples/starter-template))
-* implement an expiry date functionality
 
 ## License
 

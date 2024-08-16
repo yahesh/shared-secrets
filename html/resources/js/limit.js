@@ -1,3 +1,0 @@
-
-const MAX_PARAM_SIZE = 1024;
-

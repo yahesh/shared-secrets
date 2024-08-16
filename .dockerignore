@@ -1,0 +1,13 @@
+# do not copy Docker files
+/.dockerignore
+/Dockerfile
+
+# do not publish macOS blergh
+._*
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+
+# do not publish vim swap file
+*.swp

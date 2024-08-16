@@ -1,17 +1,12 @@
 <?php
+# prevent direct access
+if (!defined("SHARED_SECRETS")) { die(""); }
 
-  # prevent direct access
-  if (!defined("SYS11_SECRETS")) { die(""); }
+# define page title
+define("HEADING_TITLE", "Share a Secret.");
 
-  # define page title
-  define("PAGE_TITLE", "Share a Secret.");
-
-  # include header
-  require_once(ROOT_DIR."/template/header.php");
-
-  # prevents cache hits with wrong CSS
-  $cache_value = md5_file(__FILE__);
-
+# include header
+require_once(ROOT_DIR."/template/header.php");
 ?>
 
   <noscript>
@@ -23,37 +18,29 @@
     <strong>Error!</strong> Local encryption failed.
   </div>
 
-  <form role="form" action="/<?= html(SECRET_URI) ?><?= (PLAIN_PARAM) ? "?plain" : "" ?>" method="post">
-    <h1>Share a Secret:</h1>
+  <form role="form" action="/<?= html(SECRET_URI) ?><?= (PLAIN_OUTPUT) ? "?plain" : "" ?>" method="post">
+    <h2>Share a Secret:</h2>
     <div id="secret-div">
-      <textarea autocomplete="off" class="form-control" id="secret" name="secret" rows="5" required="required"></textarea>
-      <div id="counter"><?= MAX_PARAM_SIZE ?></div>
+      <textarea autocomplete="off" class="bg-light border form-control rounded" id="secret" name="secret" rows="5" required="required"></textarea>
+      <div id="counter" data-max-param-size="<?= MAX_PARAM_SIZE ?>"><?= MAX_PARAM_SIZE ?></div>
     </div>
-    <button type="submit" class="btn btn-default pull-right" id="share-secret-btn" name="share-secret-btn">Share the Secret!</button>
+    <button type="submit" class="btn btn-primary float-end" id="share-secret-btn" name="share-secret-btn">Share the Secret!</button>
   </form>
 
-  <label class="checkbox-inline" for="encrypt-locally"><input type="checkbox" autocomplete="off" id="encrypt-locally" value="" />Password-protected: </label>
-  <input type="password" autocomplete="off" class="form-control" id="password" maxlength="64" size="32" />
-  <input type="button" class="btn btn-default" id="encrypt" value="Protect!" />
+  <div class="float-start form-check-inline" id="checkbox-div">
+    <input class="form-check-input" type="checkbox" autocomplete="off" id="encrypt-locally" value="" />
+    <label class="form-check-label" for="encrypt-locally">Password-protected:</label>
+  </div>
+  <div id="password-div">
+    <input type="password" autocomplete="off" class="bg-light border float-start form-control rounded" id="password" />
+    <input type="button" class="btn btn-primary float-end" id="encrypt" value="Protect!" />
+  </div>
 
-  <link href="/resources/css/share.css?<?= $cache_value ?>" integrity="sha256-EYu1Dc10IDi0yUOyV55YWmCKWfVlBj1rTMk/AsbViKE=" rel="stylesheet" type="text/css" />
+  <div id="spacer" />
 
-  <script src="/resources/js/lib.js?<?= $cache_value ?>" integrity="sha256-TSNgGTWMqT8DICfF7UgTtxjnc/G935Ml4oxIQnHAxSM=" type="text/javascript"></script>
-<?php
-  if (defined("JUMBO_SECRETS") && JUMBO_SECRETS) {
-?>
-  <script src="/resources/js/jumbo_limit.js?<?= $cache_value ?>" integrity="sha256-7OnyT9osWKeiIPJ7xJ8IF1UYF3c/rpy2+ku0sQ0oue4=" type="text/javascript"></script>
-<?php
-  } else {
-?>
-  <script src="/resources/js/limit.js?<?= $cache_value ?>" integrity="sha256-HwcYaoqBBJhR7Y7eG2CepXkamos6C6SaViLGifuuo4E=" type="text/javascript"></script>
-<?php
-  }
-?>
-  <script src="/resources/js/share.js?<?= $cache_value ?>" integrity="sha256-JgwhPbFEIzq89yXPJxa5NkZsH8F5MtkCsQ/5sHwU+gg=" type="text/javascript"></script>
+  <link href="<?= html(cache_bust_url("/resources/css/".SECRET_ACTION."/".REQUEST_METHOD.".css")) ?>" integrity="<?= html(subresource_integrity("/resources/css/".SECRET_ACTION."/".REQUEST_METHOD.".css")) ?>" rel="stylesheet" type="text/css" />
+  <script src="<?= html(cache_bust_url("/resources/js/".SECRET_ACTION."/".REQUEST_METHOD.".js")) ?>" integrity="<?= html(subresource_integrity("/resources/js/".SECRET_ACTION."/".REQUEST_METHOD.".js")) ?>" type="text/javascript"></script>
 
 <?php
-
-  # include footer
-  require_once(ROOT_DIR."/template/footer.php");
-
+# include footer
+require_once(ROOT_DIR."/template/footer.php");

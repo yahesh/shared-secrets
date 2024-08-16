@@ -1,17 +1,12 @@
 <?php
+# prevent direct access
+if (!defined("SHARED_SECRETS")) { die(""); }
 
-  # prevent direct access
-  if (!defined("SYS11_SECRETS")) { die(""); }
+# define page title
+define("HEADING_TITLE", "Read a Secret.");
 
-  # define page title
-  define("PAGE_TITLE", "Read a Secret.");
-
-  # include header
-  require_once(ROOT_DIR."/template/header.php");
-
-  # prevents cache hits with wrong CSS
-  $cache_value = md5_file(__FILE__);
-
+# include header
+require_once(ROOT_DIR."/template/header.php");
 ?>
 
   <noscript>
@@ -20,17 +15,18 @@
     </div>
   </noscript>
 
-  <h1>Read a Secret:</h1>
-  <p><pre id="secret"><?= html(trail(SECRET_SHARING_URL, "/").SECRET_URI) ?><?= (PLAIN_PARAM) ? "?plain" : "" ?></pre></p>
+  <h2>Read a Secret:</h2>
+  <pre class="bg-light border rounded" id="secret"><?= html(trail(SERVICE_URL, "/").SECRET_URI) ?><?= (PLAIN_OUTPUT) ? "?plain" : "" ?></pre>
 
-  <form role="form" action="/<?= html(SECRET_URI) ?><?= (PLAIN_PARAM) ? "?plain" : "" ?>" method="post">
-    <button type="submit" class="btn btn-default pull-right" id="read-secret-btn" name="read-secret-btn">Read the Secret!</button>
+  <form role="form" action="/<?= html(SECRET_URI) ?><?= (PLAIN_OUTPUT) ? "?plain" : "" ?>" method="post">
+    <button type="submit" class="btn btn-primary float-end" id="read-secret-btn" name="read-secret-btn">Read the Secret!</button>
   </form>
 
-  <link href="/resources/css/read.css?<?= $cache_value ?>" integrity="sha256-wgpxEGDMqG2EJxicZqc40OJMPwN8rBAZTYLdGyagQGw=" rel="stylesheet" type="text/css" />
+  <div id="spacer" />
+
+  <link href="<?= html(cache_bust_url("/resources/css/".SECRET_ACTION."/".REQUEST_METHOD.".css")) ?>" integrity="<?= html(subresource_integrity("/resources/css/".SECRET_ACTION."/".REQUEST_METHOD.".css")) ?>" rel="stylesheet" type="text/css" />
+  <script src="<?= html(cache_bust_url("/resources/js/".SECRET_ACTION."/".REQUEST_METHOD.".js")) ?>" integrity="<?= html(subresource_integrity("/resources/js/".SECRET_ACTION."/".REQUEST_METHOD.".js")) ?>" type="text/javascript"></script>
 
 <?php
-
-  # include footer
-  require_once(ROOT_DIR."/template/footer.php");
-
+# include footer
+require_once(ROOT_DIR."/template/footer.php");

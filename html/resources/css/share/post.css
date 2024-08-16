@@ -1,0 +1,15 @@
+/* interface definitions */
+
+#copy-to-clipboard {
+  margin-top: -0.5em;
+}
+
+#secret {
+  padding:     1.0em;
+  white-space: pre-wrap;
+  word-break:  break-all;
+}
+
+#spacer {
+  margin-bottom: 5.0em;
+}

@@ -1,7 +1,9 @@
-# do not publish live config file
+# do not publish live files
 .env
-config/*
-!config/config.php.default
+html/config/*
+!html/config/config.php.default
+html/db/*
+!html/db/.gitkeep
 
 # do not publish macOS blergh
 ._*
@@ -9,3 +11,6 @@ config/*
 .DS_Store?
 .Spotlight-V100
 .Trashes
+
+# do not publish vim swap file
+*.swp

@@ -1,6 +1,18 @@
-# 0.??b0 (2023-08-07)
+# 0.40b0 (2024-08-17)
 
-* replace unnecessary `hex2bin()` calls
+* reorganized the whole sourcecode
+* rewrote the configuration handling
+* containerized the application
+* cleaned up PEM-formatted key handling
+* migrated from Bootstrap 3 to Bootstrap 5
+* introduced SQLite support as the default
+* introduced copy-to-clipboard buttons
+* fixed usability bugs in JavaScript
+* fixed URI handling for duplicate slashes
+* improved styling
+* replaced unnecessary `hex2bin()` calls
+* updated the shell examples on the how page
+* updated README to reflect the changes
 
 # 0.30b2 (2022-07-20)
 
