@@ -152,7 +152,7 @@ function prepare_environment() {
 function prepare_migration() {
   config_env("SECRET_SHARING_URL", env("SECRET_SHARING_URL"));
   if (defined("SECRET_SHARING_URL")) {
-    config("SERVICE_URL", "SECRET_SHARING_URL");
+    config("SERVICE_URL", SECRET_SHARING_URL);
   }
 }
 
