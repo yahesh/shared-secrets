@@ -44,7 +44,7 @@ Keys in the v00 format have the following purposes:
 
 ### Example
 
-The following Bash command encrypts a message with a given password using the above encryption scheme v00. A current version of OpenSSL/LibreSSL and the tool [nettle-pbkdf2](http://manpages.ubuntu.com/manpages/en/man1/nettle-pbkdf2.1.html) are needed:
+The following Bash command encrypts a message with a given password using the above encryption scheme v00. A current version of OpenSSL/LibreSSL is needed:
 
 ```
 # version 00 symmetric encryption
@@ -53,12 +53,12 @@ PASSWORD="password" &&
 VERSION="00" &&
 NONCE=$(printf "%016x0000000000000000" "$(date +%s)") &&
 SALT=$(openssl rand -hex 32) &&
-KEY=$(echo -n "$PASSWORD" | nettle-pbkdf2 -i 512000 -l 32 --raw --hex-salt "$SALT" | xxd -p | tr -d "\n") &&
-ENCKEY=$(echo -n "enc" | openssl dgst -sha256 -mac "HMAC" -macopt "hexkey:$KEY" -binary | xxd -p | tr -d "\n") &&
-MACKEY=$(echo -n "mac" | openssl dgst -sha256 -mac "HMAC" -macopt "hexkey:$KEY" -binary | xxd -p | tr -d "\n") &&
-ENCMESSAGE=$(echo -n "$MESSAGE" | openssl enc -aes-256-ctr -K "$ENCKEY" -iv "$NONCE" -nopad | xxd -p | tr -d "\n") &&
+KEY=$(echo -n "$PASSWORD" | openssl kdf -binary -kdfopt "digest:SHA256" -kdfopt "hexsalt:$SALT" -kdfopt "iter:512000" -kdfopt "pass:$PASSWORD" -keylen 32 PBKDF2 | xxd -p | tr -d "\n") &&
+ENCKEY=$(echo -n "enc" | openssl dgst -binary -mac "HMAC" -macopt "hexkey:$KEY" -sha256 | xxd -p | tr -d "\n") &&
+MACKEY=$(echo -n "mac" | openssl dgst -binary -mac "HMAC" -macopt "hexkey:$KEY" -sha256 | xxd -p | tr -d "\n") &&
+ENCMESSAGE=$(echo -n "$MESSAGE" | openssl enc -aes-256-ctr -iv "$NONCE" -K "$ENCKEY" -nopad | xxd -p | tr -d "\n") &&
 MACMESSAGE="$VERSION$SALT$NONCE$ENCMESSAGE" &&
-MAC=$(echo -n "$MACMESSAGE" | xxd -r -p | openssl dgst -sha256 -mac "HMAC" -macopt "hexkey:$MACKEY" -binary | xxd -p | tr -d "\n") &&
+MAC=$(echo -n "$MACMESSAGE" | xxd -p -r | openssl dgst -binary -mac "HMAC" -macopt "hexkey:$MACKEY" -sha256 | xxd -p | tr -d "\n") &&
 FULLMESSAGE="$MACMESSAGE$MAC" &&
 echo "$FULLMESSAGE"
 ```
@@ -100,7 +100,7 @@ Messages in the v01 format use the following keys:
 The required RSA public key can be generated as follows:
 
 ```
-openssl genrsa -out ./rsa.priv 2048
+openssl genrsa -out ./rsa.priv 4096
 openssl rsa -in ./rsa.priv -pubout -outform PEM > ./rsa.pub
 ```
 
@@ -118,20 +118,20 @@ The following Bash command encrypts a message with a given password using the ab
 ```
 # version 01 hybrid encryption
 MESSAGE="message to encrypt" &&
-RSAKEYFILE="./rsa.pub" &&
 RSAKEYCOUNT="0001" &&
+RSAKEYFILE="$(cat "./rsa.pub")" &&
 VERSION="01" &&
 NONCE=$(printf "%016x0000000000000000" "$(date +%s)") &&
 KEY=$(openssl rand -hex 32) &&
-ENCKEY=$(echo -n "enc" | openssl dgst -sha256 -mac "HMAC" -macopt "hexkey:$KEY" -binary | xxd -p | tr -d "\n") &&
-MACKEY=$(echo -n "mac" | openssl dgst -sha256 -mac "HMAC" -macopt "hexkey:$KEY" -binary | xxd -p | tr -d "\n") &&
-RSAKEY=$(echo -n "$KEY" | xxd -r -p | openssl rsautl -encrypt -oaep -pubin -inkey "$RSAKEYFILE" -keyform PEM | xxd -p | tr -d "\n") &&
-RSAKEYID=$(openssl rsa -pubin -in "$RSAKEYFILE" -pubout -outform DER 2>/dev/null | openssl dgst -sha256 -binary | xxd -p | tr -d "\n") &&
-RSAKEYLENGTH=$(echo -n "$RSAKEY" | xxd -r -p | wc -c) &&
+ENCKEY=$(echo -n "enc" | openssl dgst -binary -mac "HMAC" -macopt "hexkey:$KEY" -sha256 | xxd -p | tr -d "\n") &&
+MACKEY=$(echo -n "mac" | openssl dgst -binary -mac "HMAC" -macopt "hexkey:$KEY" -sha256 | xxd -p | tr -d "\n") &&
+RSAKEY=$(echo -n "$KEY" | xxd -r -p | openssl pkeyutl -encrypt -inkey <(echo -n "$RSAKEYFILE") -keyform PEM -pkeyopt "rsa_padding_mode:oaep" -pubin | xxd -p | tr -d "\n") &&
+RSAKEYID=$(openssl rsa -in <(echo -n "$RSAKEYFILE") -pubin -pubout -outform DER 2>/dev/null | openssl dgst -binary -sha256 | xxd -p | tr -d "\n") &&
+RSAKEYLENGTH=$(echo -n "$RSAKEY" | xxd -p -r | wc -c) &&
 RSAKEYLENGTH=$(printf "%04x" "$RSAKEYLENGTH") &&
-ENCMESSAGE=$(echo -n "$MESSAGE" | openssl enc -aes-256-ctr -K "$ENCKEY" -iv "$NONCE" -nopad | xxd -p | tr -d "\n") &&
+ENCMESSAGE=$(echo -n "$MESSAGE" | openssl enc -aes-256-ctr -iv "$NONCE" -K "$ENCKEY" -nopad | xxd -p | tr -d "\n") &&
 MACMESSAGE="$VERSION$RSAKEYCOUNT$RSAKEYID$RSAKEYLENGTH$RSAKEY$NONCE$ENCMESSAGE" &&
-MAC=$(echo -n "$MACMESSAGE" | xxd -r -p | openssl dgst -sha256 -mac "HMAC" -macopt "hexkey:$MACKEY" -binary | xxd -p | tr -d "\n") &&
+MAC=$(echo -n "$MACMESSAGE" | xxd -p -r | openssl dgst -binary -mac "HMAC" -macopt "hexkey:$MACKEY" -sha256 | xxd -p | tr -d "\n") &&
 FULLMESSAGE="$MACMESSAGE$MAC" &&
-echo "FULLMESSAGE"
+echo "$FULLMESSAGE"
 ```

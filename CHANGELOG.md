@@ -12,7 +12,8 @@
 * improved styling
 * replaced unnecessary `hex2bin()` calls
 * updated the shell examples on the how page
-* updated README to reflect the changes
+* updated shell examples in `ENCRYPTION.md`
+* updated `README.md` to reflect the changes
 
 # 0.30b2 (2022-07-20)
 
