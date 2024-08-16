@@ -11,6 +11,7 @@
 
 # prevent direct access
 define("SHARED_SECRETS", true);
+define("SYS11_SECRETS",  true); // keep for backwards compatibility
 
 # store the __DIR__ constant in an additional constant
 # so that is does not change between script files
