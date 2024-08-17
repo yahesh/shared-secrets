@@ -86,25 +86,32 @@ When starting the container you can configure the application through environmen
 ```
 podman run \
   --detach \
-  --env DEBUG_MODE="false" \
+  --env DEBUG_MODE=false \
   --env DEFAULT_TIMEZONE="Europe/Berlin" \
   --env IMPRINT_TEXT="Who provides this service?" \
   --env IMPRINT_URL="http://127.0.0.1/" \
-  --env JUMBO_SECRETS="false" \
-  --env READ_ONLY="false" \
+  --env JUMBO_SECRETS=false \
+  --env MYSQL_DB=null
+  --env MYSQL_HOST="localhost"
+  --env MYSQL_PASS=null
+  --env MYSQL_PORT=3306
+  --env MYSQL_USER=null
+  --env READ_ONLY=false \
   --env RSA_PRIVATE_KEYS="$(openssl genrsa 4096)" \
-  --env SHARE_ONLY="false" \
+  --env SHARE_ONLY=false \
   --env SERVICE_TITLE="Shared-Secrets" \
   --env SERVICE_URL="http://127.0.0.1/" \
-  --env SQLITE_PATH=/www/htdocs/db/db.sqlite \
+  --env SQLITE_PATH="%{ROOT_DIR}/db/db.sqlite" \
   --init \
-  --name shared-secrets \
+  --name "shared-secrets" \
   --network "slirp4netns:allow_host_loopback=true,cidr=10.0.2.0/24" \
   --publish "127.0.0.1:80:80" \
-  --volume /path/to/your/config:/config \
-  --volume /path/to/your/db:/db \
+  --volume "/path/to/your/config:/config" \
+  --volume "/path/to/your/db:/db" \
   "localhost/shared-secrets:latest"
 ```
+
+**Beware:** In the example provided above the `RSA_PRIVATE_KEYS` environment variable is dynamically generated during each execution. In a production setup you want to manually define the RSA keys and manage [key rollovers](#key-rollover) carefully.
 
 ### Manual Setup
 
@@ -153,14 +160,20 @@ EXIT;
 There are several ways to configure the application with configuration sources on the top take precendence over sources on the bottom of the list:
 
 1. environment variables
-2. `./config/.env`
-3. `./.env`
+2. `./html/config/.env`
+3. `./html/.env`
 4. `/.env`
-5. `./config/config.php`
+5. `./html/config/config.php`
 
 #### Configuration via environment variables
 
-Configuration values can be set by defining corresponding environment variables. Have a look at `./.env.default` for a list of valid environment variables.
+Configuration values can be set by defining corresponding environment variables. Have a look at `./.env.default` for a list of valid environment variables. There are a few things to consider for the configuration via environment variables:
+
+* Strings can contain placeholders like `%{EXAMPLE}` which will be replaced with the corresponding configuration values or environment variables if they have been defined before they are first used in a placeholder. Already-defined configuration values take precedence over environment variables with the same name during the replacement.
+* The specific placeholder `%{ROOT_DIR}` points to the execution path of the application.
+* Boolean strings (like `true` and `false`) are automatically converted to the boolean type.
+* Integer strings are automatically converted to the nteger type.
+* The `null` string is automatically converted to the null type.
 
 #### Configuration via `.env` file
 
@@ -168,7 +181,7 @@ Copy the `./.env.default` file to one of the aforementioned locations for the `.
 
 #### Configuration via `config.php` file
 
-Copy the `./config/config.php.default` file to `./config/config.php` and set the necessary configuration values.
+Copy the `./html/config/config.php.default` file to `./html/config/config.php` and set the necessary configuration values.
 
 ### Read-Only and Share-Only Instances
 

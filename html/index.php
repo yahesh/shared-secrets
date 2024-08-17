@@ -1,5 +1,5 @@
 <?php
-# Shared-Secrets v0.40b0
+# Shared-Secrets v0.41b0
 #
 # Copyright (c) 2023-2024, Yahe
 # Copyright (c) 2016-2023, SysEleven GmbH

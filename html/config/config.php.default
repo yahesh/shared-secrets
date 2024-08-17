@@ -33,7 +33,7 @@ config("MYSQL_PASS", null);
 config("MYSQL_DB",   null);
 
 # this is the SQLite configuration, the database will automatically be used if MySQL is not configured
-config("SQLITE_PATH", ROOT_DIR."/db/db.sqlite");
+config("SQLITE_PATH", "%{ROOT_DIR}/db/db.sqlite");
 
 # this enables or disables the debug mode of the instance
 config("DEBUG_MODE", false);

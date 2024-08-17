@@ -1,3 +1,10 @@
+# 0.41b0 (2024-08-17)
+
+* fix non-greedyness of RegExes
+* rewrite environment variable handling
+* introduce placeholder support for configuration
+* drop `require-sri-for` from Content-Security-Policy
+
 # 0.40b0 (2024-08-17)
 
 * reorganized the whole sourcecode

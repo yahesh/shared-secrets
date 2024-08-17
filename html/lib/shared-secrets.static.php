@@ -20,6 +20,9 @@ define("MARKER_URL_BASE64_A", "-");
 define("MARKER_URL_BASE64_B", "_");
 define("MARKER_URL_ENCODE",   "%");
 
+# define environment values
+define("ENV_NULL", "null");
+
 # define method names
 define("METHOD_GET",  "get");
 define("METHOD_POST", "post");
@@ -54,6 +57,8 @@ define("PARAM_PLAIN",  "plain");
 define("PARAM_SECRET", "secret");
 
 # define RegEx values
-define("REGEX_RSA_FULL_KEY",        "@(?<rsakeys>-----BEGIN (?:RSA )?(?:PRIVATE|PUBLIC) KEY-----(?:.*)-----END (?:RSA )?(?:PRIVATE|PUBLIC) KEY-----)@is");
-define("REGEX_RSA_RAW_PRIVATE_KEY", "@-----BEGIN (?:RSA )?PRIVATE KEY-----(?<rawkeys>.*)-----END (?:RSA )?PRIVATE KEY-----@is");
-define("REGEX_RSA_RAW_PUBLIC_KEY",  "@-----BEGIN (?:RSA )?PUBLIC KEY-----(?<rawkeys>.*)-----END (?:RSA )?PUBLIC KEY-----@is");
+# used .+? for non-greedyness
+define("REGEX_ENV_PLACEHOLDERS",    "@(?<placeholders>\%\{(?<constants>.+?)\})@is");
+define("REGEX_RSA_FULL_KEY",        "@(?<rsakeys>-----BEGIN (?:RSA )?(?:PRIVATE|PUBLIC) KEY-----(?:.+?)-----END (?:RSA )?(?:PRIVATE|PUBLIC) KEY-----)@is");
+define("REGEX_RSA_RAW_PRIVATE_KEY", "@-----BEGIN (?:RSA )?PRIVATE KEY-----(?<rawkeys>.+?)-----END (?:RSA )?PRIVATE KEY-----@is");
+define("REGEX_RSA_RAW_PUBLIC_KEY",  "@-----BEGIN (?:RSA )?PUBLIC KEY-----(?<rawkeys>.+?)-----END (?:RSA )?PUBLIC KEY-----@is");

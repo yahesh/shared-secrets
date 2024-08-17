@@ -2,21 +2,11 @@
 # prevent direct access
 if (!defined("SHARED_SECRETS")) { die(""); }
 
-function check_bool($string) {
-  $result = null;
+function check_null($string) {
+  $result = false;
 
   if (is_string($string) && (0 < strlen($string))) {
-    $result = filter_var($string, FILTER_VALIDATE_BOOLEAN);
-  }
-
-  return $result;
-}
-
-function check_int($string) {
-  $result = null;
-
-  if (is_string($string) && (0 < strlen($string))) {
-    $result = intval($string);
+    $result = (0 === strcasecmp($string, ENV_NULL));
   }
 
   return $result;
@@ -26,6 +16,12 @@ function check_int($string) {
 function config($name, $value) {
   $result = false;
 
+  # handle placeholders in string
+  $tmp = handle_placeholders($value);
+  if (null !== $tmp) {
+    $value = $tmp;
+  }
+
   if (!defined($name)) {
     $result = define($name, $value);
   }
@@ -33,42 +29,75 @@ function config($name, $value) {
   return $result;
 }
 
-# only define $name if it is not yet defined and $value is not null
-function config_env($name, $value) {
+# only define $name if it is not yet defined and the environment variable exists,
+# identify booleans, integers and RSA key arrays automatically
+function config_env($name) {
   $result = false;
 
-  if ((!defined($name)) && (null !== $value)) {
-    $result = define($name, $value);
-  }
+  # get environment variable
+  $value = getenv($name);
 
-  return $result;
-}
-
-function env($name, $default = null) {
-  $result = getenv($name);
-
-  # set the default if the environment variable isn't set
-  if ((false === $result) || (0 === strlen($result))) {
-    $result = $default;
-  }
-
-  return $result;
-}
-
-function load_dot_env($filename) {
-  # read the .env file
-  $dotenv = parse_ini_file($filename);
-  if (false !== $dotenv) {
-    foreach ($dotenv as $key => $value) {
-      # only set environment variables that are not already set
-      if (false === getenv($key)) {
-        putenv($key."=".$value);
+  # only proceed if the environment variable exists
+  if (false !== $value) {
+    # check if this is the specific null string
+    if (check_null($value)) {
+      $value = null;
+    } else {
+      # check if this is an integer string,
+      # do this first so that "0" and "1" are not handled as booleans
+      $tmp = get_int($value);
+      if (null !== $tmp) {
+        $value = $tmp;
+      } else {
+        # check if this is a boolean string
+        $tmp = get_bool($value);
+        if (null !== $tmp) {
+          $value = $tmp;
+        } else {
+          # check if this a string containing RSA keys
+          $tmp = get_rsa_keys($value);
+          if (null !== $tmp) {
+            $value = $tmp;
+          }
+        }
       }
     }
+
+    # handle placeholders in string
+    $tmp = handle_placeholders($value);
+    if (null !== $tmp) {
+      $value = $tmp;
+    }
+
+    if (!defined($name)) {
+      $result = define($name, $value);
+    }
   }
+
+  return $result;
 }
 
-function split_rsa_keys($string) {
+function get_bool($string) {
+  $result = null;
+
+  if (is_string($string) && (0 < strlen($string))) {
+    $result = filter_var($string, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+  }
+
+  return $result;
+}
+
+function get_int($string) {
+  $result = null;
+
+  if (is_string($string) && (0 < strlen($string))) {
+    $result = filter_var($string, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+  }
+
+  return $result;
+}
+
+function get_rsa_keys($string) {
   $result = null;
 
   if (is_string($string) && (0 < strlen($string))) {
@@ -88,9 +117,62 @@ function split_rsa_keys($string) {
         $result = $matches["rsakeys"];
       }
     }
+
+    # reset result
+    if (0 >= count($result)) {
+      $result = null;
+    }
   }
 
   return $result;
+}
+
+function handle_placeholders($string) {
+  $result = null;
+
+  if (is_string($string) && (0 < strlen($string))) {
+    $result = $string;
+
+    if (false !== preg_match_all(REGEX_ENV_PLACEHOLDERS, $result, $matches)) {
+      $search  = [];
+      $replace = [];
+
+      if (count($matches["constants"]) === count($matches["placeholders"])) {
+        # prepare replacement arrays
+        foreach ($matches["placeholders"] as $key => $value) {
+          # defined configuration takes precedence over other environment variables
+          if (defined($matches["constants"][$key])) {
+            $search[]  = $matches["placeholders"][$key];
+            $replace[] = constant($matches["constants"][$key]);
+          } else {
+            # only replace with an environment variable if it is defined
+            $tmp = getenv($matches["constants"][$key]);
+            if (false !== $tmp) {
+              $search[]  = $matches["placeholders"][$key];
+              $replace[] = $tmp;
+            }
+          }
+        }
+      }
+
+      $result = str_replace($search, $replace, $result);
+    }
+  }
+
+  return $result;
+}
+
+function load_dot_env($filename) {
+  # read the .env file
+  $dotenv = parse_ini_file($filename);
+  if (false !== $dotenv) {
+    foreach ($dotenv as $key => $value) {
+      # only set environment variables that are not already set
+      if (false === getenv($key)) {
+        putenv("{$key}={$value}");
+      }
+    }
+  }
 }
 
 function prepare_configuration() {
@@ -130,27 +212,27 @@ function prepare_environment() {
     load_dot_env("/.env");
   }
 
-  config_env("DEBUG_MODE",       check_bool(env("DEBUG_MODE")));
-  config_env("DEFAULT_TIMEZONE", env("DEFAULT_TIMEZONE"));
-  config_env("IMPRINT_TEXT",     env("IMPRINT_TEXT"));
-  config_env("IMPRINT_URL",      env("IMPRINT_URL"));
-  config_env("JUMBO_SECRETS" ,   check_bool(env("JUMBO_SECRETS")));
-  config_env("MAX_PARAM_SIZE",   check_int(env("MAX_PARAM_SIZE")));
-  config_env("MYSQL_DB",         env("MYSQL_DB"));
-  config_env("MYSQL_HOST",       env("MYSQL_HOST"));
-  config_env("MYSQL_PASS",       env("MYSQL_PASS"));
-  config_env("MYSQL_PORT",       check_int(env("MYSQL_PORT")));
-  config_env("MYSQL_USER",       env("MYSQL_USER"));
-  config_env("READ_ONLY",        check_bool(env("READ_ONLY")));
-  config_env("RSA_PRIVATE_KEYS", split_rsa_keys(env("RSA_PRIVATE_KEYS")));
-  config_env("SERVICE_TITLE",    env("SERVICE_TITLE"));
-  config_env("SERVICE_URL",      env("SERVICE_URL"));
-  config_env("SHARE_ONLY",       check_bool(env("SHARE_ONLY")));
-  config_env("SQLITE_PATH",      env("SQLITE_PATH"));
+  config_env("DEBUG_MODE");
+  config_env("DEFAULT_TIMEZONE");
+  config_env("IMPRINT_TEXT");
+  config_env("IMPRINT_URL");
+  config_env("JUMBO_SECRETS");
+  config_env("MAX_PARAM_SIZE");
+  config_env("MYSQL_DB");
+  config_env("MYSQL_HOST");
+  config_env("MYSQL_PASS");
+  config_env("MYSQL_PORT");
+  config_env("MYSQL_USER");
+  config_env("READ_ONLY");
+  config_env("RSA_PRIVATE_KEYS");
+  config_env("SERVICE_TITLE");
+  config_env("SERVICE_URL");
+  config_env("SHARE_ONLY");
+  config_env("SQLITE_PATH");
 }
 
 function prepare_migration() {
-  config_env("SECRET_SHARING_URL", env("SECRET_SHARING_URL"));
+  config_env("SECRET_SHARING_URL");
   if (defined("SECRET_SHARING_URL")) {
     config("SERVICE_URL", SECRET_SHARING_URL);
   }
