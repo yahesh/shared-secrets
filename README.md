@@ -172,7 +172,7 @@ Configuration values can be set by defining corresponding environment variables.
 * Strings can contain placeholders like `%{EXAMPLE}` which will be replaced with the corresponding configuration values or environment variables if they have been defined before they are first used in a placeholder. Already-defined configuration values take precedence over environment variables with the same name during the replacement.
 * The specific placeholder `%{ROOT_DIR}` points to the execution path of the application.
 * Boolean strings (like `true` and `false`) are automatically converted to the boolean type.
-* Integer strings are automatically converted to the nteger type.
+* Integer strings are automatically converted to the integer type.
 * The `null` string is automatically converted to the null type.
 
 #### Configuration via `.env` file
