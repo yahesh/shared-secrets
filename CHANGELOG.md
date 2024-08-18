@@ -1,3 +1,8 @@
+# 0.41b1 (2024-8-18)
+
+* improve mobile usability
+* disable error logs in NGINX config
+
 # 0.41b0 (2024-08-17)
 
 * fix non-greedyness of RegExes
