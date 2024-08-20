@@ -104,7 +104,7 @@ podman run \
   --env SQLITE_PATH="%{ROOT_DIR}/db/db.sqlite" \
   --init \
   --name "shared-secrets" \
-  --network "slirp4netns:allow_host_loopback=true,cidr=10.0.2.0/24" \
+  --network "slirp4netns:allow_host_loopback=true,cidr=10.0.2.0/24,mtu=1500" \
   --publish "127.0.0.1:80:80" \
   --volume "/path/to/your/config:/config" \
   --volume "/path/to/your/db:/db" \
